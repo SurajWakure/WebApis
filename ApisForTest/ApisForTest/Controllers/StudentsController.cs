@@ -1,11 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
 using ApisForTest.Models;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System;
+using ApisForTest.Services;
+
 
 namespace ApisForTest.Controllers
 {
@@ -13,35 +9,35 @@ namespace ApisForTest.Controllers
     [ApiController]
     public class StudentsController : ControllerBase
     {
-        private readonly DbContextApis _context;
+        private readonly IStudentService _studentService;
 
-        public StudentsController(DbContextApis context)
+        public StudentsController(IStudentService studentService)
         {
-            _context = context;
+            _studentService = studentService;
         }
 
         // GET: api/students
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Student>>> GetStudents()
         {
-            return await _context.Students.ToListAsync();
+            var students = await _studentService.GetAllStudentsAsync();
+            return Ok(students);
         }
 
         // GET: api/students/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Student>> GetStudent(int id)
         {
-            var student = await _context.Students.FindAsync(id);
+            var student = await _studentService.GetStudentByIdAsync(id);
             if (student == null) return NotFound();
-            return student;
+            return Ok(student);
         }
 
         // POST: api/students
         [HttpPost]
         public async Task<ActionResult<Student>> CreateStudent(Student student)
         {
-            _context.Students.Add(student);
-            await _context.SaveChangesAsync();
+            await _studentService.CreateStudentAsync(student);
             return CreatedAtAction(nameof(GetStudent), new { id = student.Id }, student);
         }
 
@@ -50,19 +46,7 @@ namespace ApisForTest.Controllers
         public async Task<IActionResult> UpdateStudent(int id, Student student)
         {
             if (id != student.Id) return BadRequest();
-
-            _context.Entry(student).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!_context.Students.Any(e => e.Id == id)) return NotFound();
-                else throw;
-            }
-
+            await _studentService.UpdateStudentAsync(student);
             return NoContent();
         }
 
@@ -70,12 +54,7 @@ namespace ApisForTest.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudent(int id)
         {
-            var student = await _context.Students.FindAsync(id);
-            if (student == null) return NotFound();
-
-            _context.Students.Remove(student);
-            await _context.SaveChangesAsync();
-
+            await _studentService.DeleteStudentAsync(id);
             return NoContent();
         }
     }

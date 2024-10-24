@@ -1,4 +1,5 @@
 using ApisForTest.Models;
+using ApisForTest.Services;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -11,6 +12,9 @@ builder.Services.AddControllers();
 
 builder.Services.AddDbContext<DbContextApis>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("conn")));
+
+builder.Services.AddScoped<IStudentService, StudentService>();
+
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
